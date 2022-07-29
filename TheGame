@@ -2,13 +2,17 @@
 # Yahtzee Game Rules ====  https://www.hasbro.com/common/instruct/yahtzee.pdf
 #Author Owns No Rights to Yahtzee
 
+from random import random, randrange
 from time import sleep
 
 def Main():
+    GameModeSelect = 0
+    
+    
+    #GameMode Selection/Input Error Checking
     
     print('Welcome to my game of Yahtzee')
-    GameModeSelect = 0
-    #GameMode Selection/Input Error Checking
+
     try:
         GameModeSelect = input('Please select a gamemode \n   1 Player = 1 \n   2 Player = 2 \n')
         if int(GameModeSelect) == 1:
@@ -26,15 +30,28 @@ def Main():
 
 #One Player Mode
 def OnePlayerMode():
-    pass
+    #initial roll
+    DiceState = {"die1":0,"die2":0,"die3":0,"die4":0,"die5":0}
+    print('Rolling 5 dice to start')
+    DiceToRoll = "die1"
+    DiceList = DiceRolling(DiceToRoll,DiceState)
+    
+    Printer(DiceList)
+    
 #One Player Mode
 def TwoPlayerMode():
     pass
 
 def DiceRolling(NumberOfDice):
-    pass
+    
+    for x in range(0,int(NumberOfDice)):
+        die = randrange(1,6)
+        DiceList.append(int(die))
+    return(DiceList)
+    
+    
 
-def Printer(x):
-    pass
+def Printer(DiceList):
+    print(*DiceList)
 if __name__ == "__main__":
     Main()
