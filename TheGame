@@ -1,57 +1,80 @@
-#Alexander Stapleman - Yahtzee Game
+# Alexander Stapleman - Yahtzee Game
 # Yahtzee Game Rules ====  https://www.hasbro.com/common/instruct/yahtzee.pdf
-#Author Owns No Rights to Yahtzee
+# Author Owns No Rights to Yahtzee
 
 from random import random, randrange
 from time import sleep
 
-def Main():
+
+def main():
     GameModeSelect = 0
-    
-    
-    #GameMode Selection/Input Error Checking
-    
+
+    # GameMode Selection/Input Error Checking
+
     print('Welcome to my game of Yahtzee')
-
     try:
-        GameModeSelect = input('Please select a game mode \n   1 Player = 1 \n   2 Player = 2 \n')
-        if int(GameModeSelect) == 1:
-            OnePlayerMode()
-        elif int(GameModeSelect) == 2:
-            TwoPlayerMode()
-        else:
+        try:
+            GameModeSelect = input('Please select a game mode \n   1 Player = 1 \n   2 Player = 2 \n')
+            if int(GameModeSelect) == 1:
+                OnePlayerMode()
+            elif int(GameModeSelect) == 2:
+                TwoPlayerMode()
+            else:
+                print(str(GameModeSelect) + ' is not a valid input, Valid game modes are "1" or "2"')
+                sleep(1)
+                main()
+        except ValueError as e:
             print(str(GameModeSelect) + ' is not a valid input, Valid game modes are "1" or "2"')
+            print(e)
             sleep(1)
-            Main()
-    except ValueError as Ve:
-        print(str(GameModeSelect) + ' is not a valid input, Valid game modes are "1" or "2"')
-        sleep(1)
-        Main()
+            main()
+    except BaseException as e:
+        print(e)
 
-#One Player Mode
+
+# One Player Mode
 def OnePlayerMode():
-    #initial roll
-    DiceState = {"die1":0,"die2":0,"die3":0,"die4":0,"die5":0}
+    # initial roll
+    DiceState = {"die1": 0, "die2": 0, "die3": 0, "die4": 0, "die5": 0}
     print('Rolling 5 dice to start')
-    DiceToRoll = "die1"
-    DiceList = DiceRolling(DiceToRoll,DiceState)
-    
-    Printer(DiceList)
-    
-#One Player Mode
+    DiceState = DiceRolling(len(DiceState), DiceState, 0)
+    Printer(DiceState, 1)
+
+
+# One Player Mode
 def TwoPlayerMode():
     pass
 
-def DiceRolling(NumberOfDice):
-    
-    for x in range(0,int(NumberOfDice)):
-        die = randrange(1,6)
-        DiceList.append(int(die))
-    return(DiceList)
-    
-    
 
-def Printer(DiceList):
-    print(*DiceList)
+def DiceRolling(NumberOfDice, DiceState, Mode):
+
+    if Mode == 0:
+        for x in range(0, len(DiceState)):
+            die = randrange(1, 7)
+            DieToChange = format("die" + str(x + 1))
+            DiceState.update({DieToChange: die})
+        return DiceState
+
+    if Mode == 1:
+        pass
+
+
+def Printer(DiceState, Mode):
+    # Starting Print
+    # Mode 0 Generic Printer
+    if Mode == 0:
+        print(DiceState)
+    # Mode 1 Rolling 5 Dice Simulator
+    if Mode == 1:
+        for x in range(1, 6):
+            DieToPrint = format("die" + str(x))
+            print("Rolling die ", str(x), end='')
+            for p in range(0, 3):
+                sleep(.3)
+                print('.', end='')
+            sleep(.5)
+            print(" ", DiceState[DieToPrint])
+
+
 if __name__ == "__main__":
-    Main()
+    main()
