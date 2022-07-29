@@ -1,0 +1,40 @@
+#Alexander Stapleman - Yahtzee Game
+# Yahtzee Game Rules ====  https://www.hasbro.com/common/instruct/yahtzee.pdf
+#Author Owns No Rights to Yahtzee
+
+from time import sleep
+
+def Main():
+    
+    print('Welcome to my game of Yahtzee')
+    GameModeSelect = 0
+    #GameMode Selection/Input Error Checking
+    try:
+        GameModeSelect = input('Please select a gamemode \n   1 Player = 1 \n   2 Player = 2 \n')
+        if int(GameModeSelect) == 1:
+            OnePlayerMode()
+        elif int(GameModeSelect) == 2:
+            TwoPlayerMode()
+        else:
+            print(str(GameModeSelect) + ' is not a valid input, Valid game modes are "1" or "2"')
+            sleep(1)
+            Main()
+    except ValueError as Ve:
+        print(str(GameModeSelect) + ' is not a valid input, Valid game modes are "1" or "2"')
+        sleep(1)
+        Main()
+
+#One Player Mode
+def OnePlayerMode():
+    pass
+#One Player Mode
+def TwoPlayerMode():
+    pass
+
+def DiceRolling(NumberOfDice):
+    pass
+
+def Printer(x):
+    pass
+if __name__ == "__main__":
+    Main()
