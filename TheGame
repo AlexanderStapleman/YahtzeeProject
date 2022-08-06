@@ -2,8 +2,9 @@
 # Yahtzee Game Rules ====  https://www.hasbro.com/common/instruct/yahtzee.pdf
 # Author Owns No Rights to Yahtzee
 
-from random import random, randrange
+from random import randrange
 from time import sleep
+from pprint import pprint as pp
 
 
 def main():
@@ -34,11 +35,18 @@ def main():
 
 # One Player Mode
 def OnePlayerMode():
-    # initial roll
+    PlayerNumber = 1
+    PlayerOneScoreCard = ScoreCard(PlayerNumber)
+    PlayerOneScoreCard.print()
+    TurnTracker = 1
     DiceState = {"die1": 0, "die2": 0, "die3": 0, "die4": 0, "die5": 0}
+    DiceToReroll = [1, 2, 3, 4, 5]
+    # initial roll
+    print("It is now turn",TurnTracker)
     print('Rolling 5 dice to start')
-    DiceState = DiceRolling(len(DiceState), DiceState, 0)
-    Printer(DiceState, 1)
+
+    DiceState = DiceRolling(DiceToReroll, DiceState, 0)
+    CommonPrinter(DiceState, 1)
 
 
 # One Player Mode
@@ -47,20 +55,67 @@ def TwoPlayerMode():
 
 
 def DiceRolling(NumberOfDice, DiceState, Mode):
-
+    # Reroll all dice
     if Mode == 0:
         for x in range(0, len(DiceState)):
             die = randrange(1, 7)
             DieToChange = format("die" + str(x + 1))
             DiceState.update({DieToChange: die})
         return DiceState
-
+    # Reroll only selected dice
     if Mode == 1:
         pass
 
 
-def Printer(DiceState, Mode):
+class ScoreCard:
+    def __init__(self, PlayerNumber):
+        self.PlayerNumber = PlayerNumber
+        self.Card = {
+            # Upper Section
+            'Aces': 0,
+            'Twos': 0,
+            'Threes': 0,
+            'Fours': 0,
+            'Fives': 0,
+            'Sixes': 0,
+            # Lower Section
+            '3 of a Kind': 0,
+            '4 of a Kind': 0,
+            'Full House': 0,
+            'Small Straight': 0,
+            'Large Straight': 0,
+            'YAHTZEE': 0,
+            'Chance': 0,
+        }
+
+    def print(self):
+        print('\n#########################')
+        print('Scorecard for Player', self.PlayerNumber)
+        print("Upper Section")
+        print('#############')
+        print('Aces: ',self.Card['Aces'])
+        print('Twos:',self.Card['Twos'])
+        print('Threes:',self.Card['Threes'])
+        print('Fours:',self.Card['Fours'])
+        print('Fives:',self.Card['Fives'])
+        print('Sixes:',self.Card['Sixes'])
+        print('#############')
+        print('Lower Section')
+        print('#############')
+        print('3 of a Kind:',self.Card['3 of a Kind'])
+        print('4 of a Kind:',self.Card['4 of a Kind'])
+        print('Full House:',self.Card['Full House'])
+        print('Small Straight:',self.Card['Small Straight'])
+        print('Large Straight:',self.Card['Large Straight'])
+        print('YAHTZEE:',self.Card['YAHTZEE'])
+        print('Chance:',self.Card['Chance'])
+        print('#########################\n',)
+
+
+
+def CommonPrinter(DiceState, Mode):
     # Starting Print
+    # Mode used to define the following
     # Mode 0 Generic Printer
     if Mode == 0:
         print(DiceState)
