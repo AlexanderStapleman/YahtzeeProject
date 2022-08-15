@@ -4,7 +4,53 @@
 
 from random import randrange
 from time import sleep
-from pprint import pprint as pp
+
+
+
+
+class ScoreCard:
+    def __init__(self, PlayerNumber):
+        self.PlayerNumber = PlayerNumber
+        self.Card = {
+            # Upper Section
+            'Aces': 0,
+            'Twos': 0,
+            'Threes': 0,
+            'Fours': 0,
+            'Fives': 0,
+            'Sixes': 0,
+            # Lower Section
+            '3 of a Kind': 0,
+            '4 of a Kind': 0,
+            'Full House': 0,
+            'Small Straight': 0,
+            'Large Straight': 0,
+            'YAHTZEE': 0,
+            'Chance': 0,
+        }
+
+    def print(self):
+        print('\n#########################')
+        print('Scorecard for Player', self.PlayerNumber)
+        print("Upper Section")
+        print('#############')
+        print('Aces: ', self.Card['Aces'])
+        print('Twos:', self.Card['Twos'])
+        print('Threes:', self.Card['Threes'])
+        print('Fours:', self.Card['Fours'])
+        print('Fives:', self.Card['Fives'])
+        print('Sixes:', self.Card['Sixes'])
+        print('#############')
+        print('Lower Section')
+        print('#############')
+        print('3 of a Kind:', self.Card['3 of a Kind'])
+        print('4 of a Kind:', self.Card['4 of a Kind'])
+        print('Full House:', self.Card['Full House'])
+        print('Small Straight:', self.Card['Small Straight'])
+        print('Large Straight:', self.Card['Large Straight'])
+        print('YAHTZEE:', self.Card['YAHTZEE'])
+        print('Chance:', self.Card['Chance'])
+        print('#########################\n', )
 
 
 def main():
@@ -35,26 +81,78 @@ def main():
 
 # One Player Mode
 def OnePlayerMode():
+    # Starting variables and declarations
     PlayerNumber = 1
     PlayerOneScoreCard = ScoreCard(PlayerNumber)
     PlayerOneScoreCard.print()
     TurnTracker = 1
     DiceState = {"die1": 0, "die2": 0, "die3": 0, "die4": 0, "die5": 0}
     DiceToReroll = [1, 2, 3, 4, 5]
-    # initial roll
-    print("It is now turn",TurnTracker)
+
+    # Start Game
+    # Initial roll
+    print("It is now turn", TurnTracker)
     print('Rolling 5 dice to start')
+    # Roll with mode 0 -> all dice rolled
+    DiceState = DiceRolling(DiceState, 0)
+    # Print with mode 1 -> Assumed rolling all
+    CommonPrinter(DiceState, 0)
+    while TurnTracker < 14:
+        print("It is turn", TurnTracker)
+        TurnTracker += 1
+        TakeTurn(DiceState, PlayerOneScoreCard)
 
-    DiceState = DiceRolling(DiceToReroll, DiceState, 0)
-    CommonPrinter(DiceState, 1)
 
-
-# One Player Mode
 def TwoPlayerMode():
-    pass
+    print("Two player not yet implemented")
+    main()
 
 
-def DiceRolling(NumberOfDice, DiceState, Mode):
+def TakeTurn(DiceState, PlayerScoreCard):
+    # Create list of dice to keep
+    Keepers = []
+    # How many rolls have happened this turn
+    rollCount = 1
+    # Turn's first roll of all dice
+    DiceState = DiceRolling(DiceState, 0)
+    CommonPrinter(DiceState, 1)
+    AlreadyScored = False
+    # Iterate rolls
+    for x in range(1, 4):
+        # Ends turn if already scored this roll
+        if AlreadyScored is True: break
+        print("Currently on roll", rollCount)
+        # Increment Rolls
+        rollCount += 1
+        # While loop for input error checking
+        inputCheck = False
+        if x < 3:
+            while inputCheck is False:
+                ScoreQuestion = input("Would you like to score now? y/n: ")
+                if ScoreQuestion == "y" or ScoreQuestion == "Y":
+                    print("Time to score.")
+                    Score(PlayerScoreCard, DiceState)
+                    AlreadyScored = True
+                    break
+                    # score here
+                elif ScoreQuestion == "n" or ScoreQuestion == "N":
+                    inputCheck = True
+                    # Used to determine if entered dice to roll are valid
+                    KeeperCheck = False
+                    while KeeperCheck is False:
+                        Keepers = [int(y) if y.isnumeric() else '' for y in input("Which dice would you like to keep? Separate dice with spaces.").split()]
+                        KeeperCheck, Keepers = DiceToRerollCheck(Keepers)
+                    #Reroll
+                    DiceRolling(DiceState, 1, Keepers)
+                else:
+                    print("Invalid input, Only enter 'y' or 'n'")
+        else:
+            #Score
+            print("Time to score.")
+            Score(PlayerScoreCard, DiceState)
+
+
+def DiceRolling(DiceState, Mode, *DiceToKeep):
     # Reroll all dice
     if Mode == 0:
         for x in range(0, len(DiceState)):
@@ -64,71 +162,67 @@ def DiceRolling(NumberOfDice, DiceState, Mode):
         return DiceState
     # Reroll only selected dice
     if Mode == 1:
-        pass
-
-
-class ScoreCard:
-    def __init__(self, PlayerNumber):
-        self.PlayerNumber = PlayerNumber
-        self.Card = {
-            # Upper Section
-            'Aces': 0,
-            'Twos': 0,
-            'Threes': 0,
-            'Fours': 0,
-            'Fives': 0,
-            'Sixes': 0,
-            # Lower Section
-            '3 of a Kind': 0,
-            '4 of a Kind': 0,
-            'Full House': 0,
-            'Small Straight': 0,
-            'Large Straight': 0,
-            'YAHTZEE': 0,
-            'Chance': 0,
+        print(DiceState)
+        diceToKeep = list(DiceToKeep[0])
+        diceConversionToString = {
+            1: "1",
+            2: "2",
+            3: "3",
+            4: "4",
+            5: "5",
+            6: "6"
         }
-
-    def print(self):
-        print('\n#########################')
-        print('Scorecard for Player', self.PlayerNumber)
-        print("Upper Section")
-        print('#############')
-        print('Aces: ',self.Card['Aces'])
-        print('Twos:',self.Card['Twos'])
-        print('Threes:',self.Card['Threes'])
-        print('Fours:',self.Card['Fours'])
-        print('Fives:',self.Card['Fives'])
-        print('Sixes:',self.Card['Sixes'])
-        print('#############')
-        print('Lower Section')
-        print('#############')
-        print('3 of a Kind:',self.Card['3 of a Kind'])
-        print('4 of a Kind:',self.Card['4 of a Kind'])
-        print('Full House:',self.Card['Full House'])
-        print('Small Straight:',self.Card['Small Straight'])
-        print('Large Straight:',self.Card['Large Straight'])
-        print('YAHTZEE:',self.Card['YAHTZEE'])
-        print('Chance:',self.Card['Chance'])
-        print('#########################\n',)
+        dice = [1,2,3,4,5]
+        for die in diceToKeep:
+            if diceToKeep.__contains__(die):
+                dice.remove(int(die))
+        print(dice)
+        for x in dice:
+            die = randrange(1, 7)
+            DieToChange = format("die" + str(diceConversionToString[x]))
+            DiceState.update({DieToChange: die})
+        print(DiceState)
 
 
+def Score(PlayerScoreCard, DiceState):
+    print(PlayerScoreCard)
+    CommonPrinter(DiceState,0)
+
+
+
+def DiceToRerollCheck(DiceList):
+    print(DiceList)
+    if len(DiceList) > 5:
+        print("Too many arguments try again")
+        return False, DiceList
+    PassCheck = False
+    for die in DiceList:
+        if not isinstance(die, int):
+            print("Only Numbers Allowed")
+            return False, DiceList
+        elif int(die) > 5 or int(die) < 0:
+            print("Only Numbers between 1-5 allowed")
+            return False, DiceList
+        else:
+            PassCheck = True
+    return PassCheck, DiceList
 
 def CommonPrinter(DiceState, Mode):
     # Starting Print
     # Mode used to define the following
     # Mode 0 Generic Printer
     if Mode == 0:
-        print(DiceState)
-    # Mode 1 Rolling 5 Dice Simulator
-    if Mode == 1:
         for x in range(1, 6):
             DieToPrint = format("die" + str(x))
             print("Rolling die ", str(x), end='')
             for p in range(0, 3):
-                sleep(.3)
+                sleep(.1)
                 print('.', end='')
-            sleep(.5)
+            sleep(.1)
             print(" ", DiceState[DieToPrint])
+    # Mode 1 Rolling 5 Dice Simulator
+    if Mode == 1:
+        pass
 
 
 if __name__ == "__main__":
