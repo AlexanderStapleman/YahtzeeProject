@@ -6,27 +6,60 @@ from random import randrange
 from time import sleep
 
 
+
 class ScoreCard:
     def __init__(self, PlayerNumber):
         self.PlayerNumber = PlayerNumber
         self.Points = 0
-        self.BonusYahtzee = 0
+        self.Yahtzees = 0
         self.Card = {
             # Upper Section
-            'Aces': 0,
+            'Ones': 0,
             'Twos': 0,
             'Threes': 0,
             'Fours': 0,
             'Fives': 0,
             'Sixes': 0,
             # Lower Section
-            '3 of a Kind': 0,
-            '4 of a Kind': 0,
+            'Three of a Kind': 0,
+            'Four of a Kind': 0,
             'Full House': 0,
             'Small Straight': 0,
             'Large Straight': 0,
-            'YAHTZEE': 0,
+            'Yahtzee': 0,
             'Chance': 0,
+        }
+        # Used to determine if a category has already been scored in, checking if value is 0 isn't valid since you
+        # could be forced to score in the "threes" category with no "3 dice"
+        self.isScoredCard = {
+            1: False,  # Ones
+            2: False,  # Twos
+            3: False,  # Threes
+            4: False,  # Fours
+            5: False,  # Fives
+            6: False,  # Sixes
+            7: False,  # Three of a kind
+            8: False,  # Four of a kind
+            9: False,  # Full House
+            10: False,  # Small Straight
+            11: False,  # Large Straight
+            12: False,  # Yahtzee
+            13: False  # Chance
+        }
+        self.yahtzee_score_options = {
+            1: "Ones",
+            2: "Twos",
+            3: "Threes",
+            4: "Fours",
+            5: "Fives",
+            6: "Sixes",
+            7: "Three of a Kind",
+            8: "Four of a Kind",
+            9: "Full House",
+            10: "Small Straight",
+            11: "Large Straight",
+            12: "Yahtzee",
+            13: "Chance"
         }
 
     def print(self):
@@ -34,7 +67,7 @@ class ScoreCard:
         print('Scorecard for Player', self.PlayerNumber)
         print("Upper Section")
         print('#############')
-        print('Aces: ', self.Card['Aces'])
+        print('Ones: ', self.Card['Ones'])
         print('Twos:', self.Card['Twos'])
         print('Threes:', self.Card['Threes'])
         print('Fours:', self.Card['Fours'])
@@ -43,19 +76,21 @@ class ScoreCard:
         print('#############')
         print('Lower Section')
         print('#############')
-        print('3 of a Kind:', self.Card['3 of a Kind'])
-        print('4 of a Kind:', self.Card['4 of a Kind'])
+        print('3 of a Kind:', self.Card['Three of a Kind'])
+        print('4 of a Kind:', self.Card['Four of a Kind'])
         print('Full House:', self.Card['Full House'])
         print('Small Straight:', self.Card['Small Straight'])
         print('Large Straight:', self.Card['Large Straight'])
-        print('YAHTZEE:', self.Card['YAHTZEE'])
+        print('YAHTZEE:', self.Card['Yahtzee'])
         print('Chance:', self.Card['Chance'])
         print('#########################\n', )
 
-    def CalculateFinalScore(self):
+    def AddUpFinalPoints(self):
         for x in self.Card:
             self.Points = self.Card[x] + self.Points
+        # Delete Later
         print(self.Points)
+
 
 def main():
     GameModeSelect = 0
@@ -104,6 +139,8 @@ def OnePlayerMode():
         TurnTracker += 1
         TakeTurn(DiceState, PlayerOneScoreCard)
 
+    FinalScoreing(PlayerOneScoreCard, DiceState)
+
 
 def TwoPlayerMode():
     print("Two player not yet implemented")
@@ -111,7 +148,6 @@ def TwoPlayerMode():
 
 
 def TakeTurn(DiceState, PlayerScoreCard):
-
     # Create list of dice to keep
     Keepers = []
 
@@ -120,7 +156,9 @@ def TakeTurn(DiceState, PlayerScoreCard):
 
     # Turn's first roll of all dice
     DiceState = DiceRolling(DiceState, 0)
-    CommonPrinter(DiceState, 0)
+
+    print("Currently on roll 1")
+    DiceRollingPrinter(DiceState, 0)
 
     # Used to decide if player manually scored without continuing to reroll.
     AlreadyScored = False
@@ -129,9 +167,10 @@ def TakeTurn(DiceState, PlayerScoreCard):
     for x in range(1, 4):
 
         # Ends turn if already scored this roll
-        if AlreadyScored is True: break
+        if AlreadyScored is True:
+            break
 
-        print("Currently on roll", rollCount)
+
 
         # Increment Rolls
         rollCount += 1
@@ -142,11 +181,10 @@ def TakeTurn(DiceState, PlayerScoreCard):
             while inputCheck is False:
                 ScoreQuestion = input("Would you like to score now? y/n: ")
                 if ScoreQuestion == "y" or ScoreQuestion == "Y":
-                    print("Time to score.")
+                    # Score here
                     Score(PlayerScoreCard, DiceState)
                     AlreadyScored = True
                     break
-                    # score here
                 elif ScoreQuestion == "n" or ScoreQuestion == "N":
                     inputCheck = True
                     # Used to determine if entered dice to roll are valid
@@ -157,7 +195,9 @@ def TakeTurn(DiceState, PlayerScoreCard):
                         KeeperCheck, Keepers = DiceToRerollCheck(Keepers)
                     # Reroll
                     DiceRolling(DiceState, 1, Keepers)
-                    CommonPrinter(DiceState, 0)
+                    if rollCount != 1:
+                        print("Currently on roll", rollCount)
+                    DiceRollingPrinter(DiceState, 0)
                 else:
                     print("Invalid input, Only enter 'y' or 'n'")
         else:
@@ -200,16 +240,177 @@ def DiceRolling(DiceState, Mode, *DiceToKeep):
             DiceState.update({DieToChange: die})
         # print(DiceState)
 
-
+def AlternateJokerScoring(PlayerScoreCard, DiceState):
+    pass
 def Score(PlayerScoreCard, DiceState):
     # Initial Scoring
+    print("Time to score.")
+    sleep(1)
+    print("Here is your current score")
     PlayerScoreCard.print()
-    CommonPrinter(DiceState, 1)
 
-    # D
+    # Show player current state
+    DiceScoringPrinter(DiceState)
+
+    ###################################################################
+    # Read page 6 of the Yahtzee Manual to Understand the Joker Rules #
+    ###################################################################
+    def JokerRuling(PlayerScoreCard, DiceState):
+        counts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0}
+        for value in DiceState.values():
+            counts[value] += 1
+
+        if PlayerScoreCard.isScoredCard[12]:
+            for totalDie in counts.values():
+                if totalDie == 5:
+                    if PlayerScoreCard.Card['YAHTZEE'] == 50:
+                        PlayerScoreCard.Yahtzees += 1
+                    return True
+                else:
+                    return False
+        else:
+            return False
+
+    jokerStatus = JokerRuling(PlayerScoreCard, DiceState)
+    if jokerStatus == True:
+        AlternateJokerScoring(PlayerScoreCard,DiceState)
+    else:
+        # Prompt user for category to score in.
+        print("Use this chart to assist with scoring.\n"
+              "Ones:1\n"
+              "Twos:2\n"
+              "Threes:3\n"
+              "Fours:4\n"
+              "Fives:5\n"
+              "Sixes:6\n"
+              "Three of a kind:7\n"
+              "Four of a kind:8\n"
+              "Full House:9\n"
+              "Small Straight:10\n"
+              "Large Straight:11\n"
+              "Yahtzee:12\n"
+              "Chance:13\n")
+
+        UserScoringCategory = ""
+        while 1:
+
+            UserScoringCategory = input("Which category would you like to score in? Enter the number that coresponds with "
+                                        "the desired category: ")
+            print("You entered: ", UserScoringCategory)
+
+            if UserScoringCategory.isdigit():
+                UserScoringCategory = int(UserScoringCategory)
+                if 0 < UserScoringCategory < 14:
+                    if not PlayerScoreCard.isScoredCard[UserScoringCategory]:
+                        break
+                    else:
+                        print("Category already scored please select a different category.")
+
+            print("Invalid input, only input a number 1-13 that hasn't already been scored in to designate which category "
+                  "to score in.")
+            sleep(1)
+
+        # Determine how many points to assign
+        points_to_score = PointCalculation(PlayerScoreCard, DiceState, UserScoringCategory)
+        convertedScoringCategory = PlayerScoreCard.yahtzee_score_options[UserScoringCategory]
+        # Assign the points
+        PlayerScoreCard.Card[convertedScoringCategory]+=points_to_score
+
+        PlayerScoreCard.print()
+
+def PointCalculation(PlayerScoreCard, DiceState, CategoryToScore):
+    counts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0}
+    # Count number of each die
+    for value in DiceState.values():
+        counts[value] += 1
+
+    # Used for a few of the scores
+    def TotalOfDice(diceCounts):
+        return (diceCounts[1]) + (diceCounts[2] * 2) + (diceCounts[3] * 3) + (diceCounts[4] * 4) + (
+                diceCounts[5] * 5) + (diceCounts[6] * 6)
+
+    if CategoryToScore == 1:
+        return counts[1]
+
+    if CategoryToScore == 2:
+        return counts[2] * 2
+
+    if CategoryToScore == 3:
+        return counts[3] * 3
+
+    if CategoryToScore == 4:
+        return counts[4] * 4
+
+    if CategoryToScore == 5:
+        return counts[5] * 5
+
+    if CategoryToScore == 6:
+        return counts[6] * 6
+
+    if CategoryToScore == 7:
+        for totalDie in counts.values():
+            if totalDie >= 3:
+                return TotalOfDice(counts)
+            else:
+                return 0
+
+    if CategoryToScore == 8:
+        for totalDie in counts.values():
+            if totalDie >= 4:
+                return TotalOfDice(counts)
+            else:
+                return 0
+
+    if CategoryToScore == 9:
+        found_two_same = False
+        found_three_same = False
+        for totalDie in counts.values():
+            if totalDie == 2:
+                found_two_same = True
+            if totalDie == 3:
+                found_three_same = True
+
+        if found_three_same and found_two_same:
+            return 25
+        else:
+            return 0
+
+    if CategoryToScore == 10:
+        if (counts[1] and counts[2] and counts[3] and counts[4]) or \
+                (counts[2] and counts[3] and counts[4] and counts[5]) or \
+                (counts[3] and counts[4] and counts[5] and counts[6]):
+            return 30
+        else:
+            return 0
+
+    if CategoryToScore == 11:
+        if (counts[1] and counts[2] and counts[3] and counts[4] and counts[5]) or \
+                (counts[2] and counts[3] and counts[4] and counts[5] and counts[6]):
+            return 40
+        else:
+            return 0
+
+
+    if CategoryToScore == 12:
+        for totalDie in counts.values():
+            if totalDie == 5:
+                PlayerScoreCard.Yahtzees += 1
+                return 50
+            else:
+                return 0
+
+    if CategoryToScore == 13:
+        return TotalOfDice(counts)
+
+
+def FinalScoreing(PlayerScoreCard, DiceState):
+    pass
+
 
 def DiceToRerollCheck(DiceList):
     # print(DiceList)
+    if len(DiceList) == 0:
+        return True, DiceList
     if len(DiceList) > 5:
         print("Too many arguments try again")
         return False, DiceList
@@ -226,7 +427,7 @@ def DiceToRerollCheck(DiceList):
     return PassCheck, DiceList
 
 
-def CommonPrinter(DiceState, Mode):
+def DiceRollingPrinter(DiceState, Mode):
     # Starting Print
     # Mode used to define the following
     # Mode 0 Dice Rolling
@@ -241,8 +442,18 @@ def CommonPrinter(DiceState, Mode):
             print(" ", DiceState[DieToPrint], )
         print()
     # Mode 1 Print Dice State
-    if Mode == 1:
-        pass
+
+
+def DiceScoringPrinter(DiceState):
+    # Print final dice state for scoring
+    print("YOUR DICE TO SCORE!")
+    for x in range(1, 6):
+        # Format text to search DiceState dictionary with
+        DieToPrint = format("die" + str(x))
+
+        print("Die ", str(x), " ==> ", end='', sep='')
+        print(DiceState[DieToPrint])
+    print()
 
 
 if __name__ == "__main__":
