@@ -6,11 +6,11 @@ from random import randrange
 from time import sleep
 
 
-
-
 class ScoreCard:
     def __init__(self, PlayerNumber):
         self.PlayerNumber = PlayerNumber
+        self.Points = 0
+        self.BonusYahtzee = 0
         self.Card = {
             # Upper Section
             'Aces': 0,
@@ -52,6 +52,10 @@ class ScoreCard:
         print('Chance:', self.Card['Chance'])
         print('#########################\n', )
 
+    def CalculateFinalScore(self):
+        for x in self.Card:
+            self.Points = self.Card[x] + self.Points
+        print(self.Points)
 
 def main():
     GameModeSelect = 0
@@ -83,20 +87,18 @@ def main():
 def OnePlayerMode():
     # Starting variables and declarations
     PlayerNumber = 1
+
+    # Player Score card created
     PlayerOneScoreCard = ScoreCard(PlayerNumber)
     PlayerOneScoreCard.print()
+
+    # Creating a turn count to manage length of game
     TurnTracker = 1
+
+    # Initial Dice State
     DiceState = {"die1": 0, "die2": 0, "die3": 0, "die4": 0, "die5": 0}
-    DiceToReroll = [1, 2, 3, 4, 5]
 
     # Start Game
-    # Initial roll
-    print("It is now turn", TurnTracker)
-    print('Rolling 5 dice to start')
-    # Roll with mode 0 -> all dice rolled
-    DiceState = DiceRolling(DiceState, 0)
-    # Print with mode 1 -> Assumed rolling all
-    CommonPrinter(DiceState, 0)
     while TurnTracker < 14:
         print("It is turn", TurnTracker)
         TurnTracker += 1
@@ -109,21 +111,31 @@ def TwoPlayerMode():
 
 
 def TakeTurn(DiceState, PlayerScoreCard):
+
     # Create list of dice to keep
     Keepers = []
+
     # How many rolls have happened this turn
     rollCount = 1
+
     # Turn's first roll of all dice
     DiceState = DiceRolling(DiceState, 0)
-    CommonPrinter(DiceState, 1)
+    CommonPrinter(DiceState, 0)
+
+    # Used to decide if player manually scored without continuing to reroll.
     AlreadyScored = False
+
     # Iterate rolls
     for x in range(1, 4):
+
         # Ends turn if already scored this roll
         if AlreadyScored is True: break
+
         print("Currently on roll", rollCount)
+
         # Increment Rolls
         rollCount += 1
+
         # While loop for input error checking
         inputCheck = False
         if x < 3:
@@ -140,15 +152,20 @@ def TakeTurn(DiceState, PlayerScoreCard):
                     # Used to determine if entered dice to roll are valid
                     KeeperCheck = False
                     while KeeperCheck is False:
-                        Keepers = [int(y) if y.isnumeric() else '' for y in input("Which dice would you like to keep? Separate dice with spaces.").split()]
+                        Keepers = [int(y) if y.isnumeric() else '' for y in
+                                   input("Which dice would you like to keep? Separate dice with spaces.").split()]
                         KeeperCheck, Keepers = DiceToRerollCheck(Keepers)
-                    #Reroll
+                    # Reroll
                     DiceRolling(DiceState, 1, Keepers)
+                    CommonPrinter(DiceState, 0)
                 else:
                     print("Invalid input, Only enter 'y' or 'n'")
         else:
-            #Score
+            # Score
             print("Time to score.")
+            print()
+            print("Need To Implement Scoring Here")
+            print()
             Score(PlayerScoreCard, DiceState)
 
 
@@ -162,7 +179,7 @@ def DiceRolling(DiceState, Mode, *DiceToKeep):
         return DiceState
     # Reroll only selected dice
     if Mode == 1:
-        print(DiceState)
+        # print(DiceState)
         diceToKeep = list(DiceToKeep[0])
         diceConversionToString = {
             1: "1",
@@ -172,26 +189,27 @@ def DiceRolling(DiceState, Mode, *DiceToKeep):
             5: "5",
             6: "6"
         }
-        dice = [1,2,3,4,5]
+        dice = [1, 2, 3, 4, 5]
         for die in diceToKeep:
             if diceToKeep.__contains__(die):
                 dice.remove(int(die))
-        print(dice)
+        # print(dice)
         for x in dice:
             die = randrange(1, 7)
             DieToChange = format("die" + str(diceConversionToString[x]))
             DiceState.update({DieToChange: die})
-        print(DiceState)
+        # print(DiceState)
 
 
 def Score(PlayerScoreCard, DiceState):
-    print(PlayerScoreCard)
-    CommonPrinter(DiceState,0)
+    # Initial Scoring
+    PlayerScoreCard.print()
+    CommonPrinter(DiceState, 1)
 
-
+    # D
 
 def DiceToRerollCheck(DiceList):
-    print(DiceList)
+    # print(DiceList)
     if len(DiceList) > 5:
         print("Too many arguments try again")
         return False, DiceList
@@ -207,10 +225,11 @@ def DiceToRerollCheck(DiceList):
             PassCheck = True
     return PassCheck, DiceList
 
+
 def CommonPrinter(DiceState, Mode):
     # Starting Print
     # Mode used to define the following
-    # Mode 0 Generic Printer
+    # Mode 0 Dice Rolling
     if Mode == 0:
         for x in range(1, 6):
             DieToPrint = format("die" + str(x))
@@ -219,8 +238,9 @@ def CommonPrinter(DiceState, Mode):
                 sleep(.1)
                 print('.', end='')
             sleep(.1)
-            print(" ", DiceState[DieToPrint])
-    # Mode 1 Rolling 5 Dice Simulator
+            print(" ", DiceState[DieToPrint], )
+        print()
+    # Mode 1 Print Dice State
     if Mode == 1:
         pass
 
