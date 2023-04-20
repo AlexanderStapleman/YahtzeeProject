@@ -4,7 +4,7 @@
 
 from random import randrange
 from time import sleep
-
+from itertools import islice
 
 
 class ScoreCard:
@@ -61,6 +61,18 @@ class ScoreCard:
             12: "Yahtzee",
             13: "Chance"
         }
+        self.yahtzee_score_options_with_score = {
+            7: "Three of a Kind - Total of all 5 dice",
+            8: "Four of a Kind - Total of all 5 dice",
+            9: "Full House - 25 Points",
+            10: "Small Straight - 30 Points",
+            11: "Large Straight - 40 Points",
+            13: "Chance - 25 Total of all 5 dice"
+        }
+
+    def CalculateUpperSectionPoints(self):
+        upper_section_points = sum(value for value in islice(self.Card.values(), 6))
+        return upper_section_points
 
     def print(self):
         print('\n#########################')
@@ -84,12 +96,6 @@ class ScoreCard:
         print('YAHTZEE:', self.Card['Yahtzee'])
         print('Chance:', self.Card['Chance'])
         print('#########################\n', )
-
-    def AddUpFinalPoints(self):
-        for x in self.Card:
-            self.Points = self.Card[x] + self.Points
-        # Delete Later
-        print(self.Points)
 
 
 def main():
@@ -139,7 +145,11 @@ def OnePlayerMode():
         TurnTracker += 1
         TakeTurn(DiceState, PlayerOneScoreCard)
 
-    FinalScoreing(PlayerOneScoreCard, DiceState)
+    final_score = FinalScoreing(PlayerOneScoreCard)
+
+    print("##############################################"
+          "#  Congratulations!! Your Final Score is {}  #"
+          "##############################################".format(final_score))
 
 
 def TwoPlayerMode():
@@ -169,8 +179,6 @@ def TakeTurn(DiceState, PlayerScoreCard):
         # Ends turn if already scored this roll
         if AlreadyScored is True:
             break
-
-
 
         # Increment Rolls
         rollCount += 1
@@ -202,9 +210,6 @@ def TakeTurn(DiceState, PlayerScoreCard):
                     print("Invalid input, Only enter 'y' or 'n'")
         else:
             # Score
-            print("Time to score.")
-            print()
-            print("Need To Implement Scoring Here")
             print()
             Score(PlayerScoreCard, DiceState)
 
@@ -240,10 +245,10 @@ def DiceRolling(DiceState, Mode, *DiceToKeep):
             DiceState.update({DieToChange: die})
         # print(DiceState)
 
-def AlternateJokerScoring(PlayerScoreCard, DiceState):
-    pass
+
 def Score(PlayerScoreCard, DiceState):
     # Initial Scoring
+
     print("Time to score.")
     sleep(1)
     print("Here is your current score")
@@ -256,6 +261,7 @@ def Score(PlayerScoreCard, DiceState):
     # Read page 6 of the Yahtzee Manual to Understand the Joker Rules #
     ###################################################################
     def JokerRuling(PlayerScoreCard, DiceState):
+        joker_ruling_status = False
         counts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0}
         for value in DiceState.values():
             counts[value] += 1
@@ -263,17 +269,18 @@ def Score(PlayerScoreCard, DiceState):
         if PlayerScoreCard.isScoredCard[12]:
             for totalDie in counts.values():
                 if totalDie == 5:
-                    if PlayerScoreCard.Card['YAHTZEE'] == 50:
+                    if PlayerScoreCard.Card['Yahtzee'] == 50:
                         PlayerScoreCard.Yahtzees += 1
-                    return True
+                    joker_ruling_status = True
                 else:
-                    return False
+                    joker_ruling_status = False
         else:
-            return False
+            joker_ruling_status = False
+        return joker_ruling_status
 
     jokerStatus = JokerRuling(PlayerScoreCard, DiceState)
     if jokerStatus == True:
-        AlternateJokerScoring(PlayerScoreCard,DiceState)
+        AlternateJokerScoring(PlayerScoreCard, DiceState, )
     else:
         # Prompt user for category to score in.
         print("Use this chart to assist with scoring.\n"
@@ -294,8 +301,9 @@ def Score(PlayerScoreCard, DiceState):
         UserScoringCategory = ""
         while 1:
 
-            UserScoringCategory = input("Which category would you like to score in? Enter the number that coresponds with "
-                                        "the desired category: ")
+            UserScoringCategory = input(
+                "Which category would you like to score in? Enter the number that coresponds with "
+                "the desired category: ")
             print("You entered: ", UserScoringCategory)
 
             if UserScoringCategory.isdigit():
@@ -306,17 +314,121 @@ def Score(PlayerScoreCard, DiceState):
                     else:
                         print("Category already scored please select a different category.")
 
-            print("Invalid input, only input a number 1-13 that hasn't already been scored in to designate which category "
-                  "to score in.")
+            print(
+                "Invalid input, only input a number 1-13 that hasn't already been scored in to designate which category "
+                "to score in.")
             sleep(1)
 
         # Determine how many points to assign
         points_to_score = PointCalculation(PlayerScoreCard, DiceState, UserScoringCategory)
         convertedScoringCategory = PlayerScoreCard.yahtzee_score_options[UserScoringCategory]
         # Assign the points
-        PlayerScoreCard.Card[convertedScoringCategory]+=points_to_score
+        PlayerScoreCard.Card[convertedScoringCategory] += points_to_score
+        # Mark as scored
+        PlayerScoreCard.isScoredCard[UserScoringCategory] = True
 
         PlayerScoreCard.print()
+
+
+def AlternateJokerScoring(PlayerScoreCard, DiceState):
+    # check if all upper section boxes have been scored in already
+    counts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0}
+    for value in DiceState.values():
+        counts[value] += 1
+
+    # Upper Section Alternate Scoring #
+    remaining_upper_scoring_boxes = [x for x, y in PlayerScoreCard.isScoredCard.items() if y is False and x < 7]
+
+    if not len(remaining_upper_scoring_boxes) == 0:
+        possible_outcomes = {}
+
+        stringToPrint = ""
+        print("You must pick one of these options to score in.\nYour score will be the combined total of all 5 dice.\n")
+        for number, remaining in enumerate(remaining_upper_scoring_boxes, start=1):
+            possible_outcomes.update({number: remaining})
+            stringToPrint += "{} {}\n".format(number, PlayerScoreCard.yahtzee_score_options[remaining])
+
+        print(stringToPrint)
+
+        while 1:
+
+            UserScoringCategory = input(
+                "\nWhich category would you like to score in? Enter the number that coresponds with "
+                "the desired category: ")
+            print("You entered: ", UserScoringCategory)
+
+            if UserScoringCategory.isdigit():
+                UserScoringCategory = int(UserScoringCategory)
+                if 0 < UserScoringCategory <= len(remaining_upper_scoring_boxes):
+                    points_to_score = TotalOfDice(counts)
+
+                    category_to_score = possible_outcomes[UserScoringCategory]
+
+                    # Joker scoring happens here for upper boxes
+                    PlayerScoreCard.Card[PlayerScoreCard.yahtzee_score_options[category_to_score]] += points_to_score
+                    PlayerScoreCard.isScoredCard[category_to_score] = True
+                    print()
+
+                    return
+            else:
+                print(
+                    "Invalid input, only input a number 1-{}.".format(len(remaining_upper_scoring_boxes)))
+    # Lower Section Alternate Scoring #
+    remaining_lower_scoring_boxes = [x for x, y in PlayerScoreCard.isScoredCard.items() if
+                                     y is False and x > 6 and x != 12]
+
+    if not len(remaining_lower_scoring_boxes) == 0:
+        possible_outcomes = {}
+
+        stringToPrint = ""
+        print("You must pick one of these options to score in.\nYour score will depend on chosen category\n")
+        for number, remaining in enumerate(remaining_lower_scoring_boxes, start=1):
+            possible_outcomes.update({number: remaining})
+            stringToPrint += "{} {}\n".format(number, PlayerScoreCard.yahtzee_score_options_with_score[remaining])
+
+        print(stringToPrint)
+
+        while 1:
+
+            UserScoringCategory = input(
+                "\nWhich category would you like to score in? Enter the number that coresponds with "
+                "the desired category: ")
+            print("You entered: ", UserScoringCategory)
+
+            if UserScoringCategory.isdigit():
+                UserScoringCategory = int(UserScoringCategory)
+                if 0 < UserScoringCategory <= len(remaining_lower_scoring_boxes):
+                    # points_to_score = TotalOfDice(counts)
+
+                    category_to_score = possible_outcomes[UserScoringCategory]
+                    if category_to_score == 7:
+                        points_to_score = TotalOfDice(counts)
+                    elif category_to_score == 8:
+                        points_to_score = TotalOfDice(counts)
+                    elif category_to_score == 9:
+                        points_to_score = 25
+                    elif category_to_score == 10:
+                        points_to_score = 30
+                    elif category_to_score == 11:
+                        points_to_score = 40
+                    else:  # category_to_score is 13
+                        points_to_score = TotalOfDice(counts)
+
+                    # Joker scoring happens here for upper boxes
+                    PlayerScoreCard.Card[PlayerScoreCard.yahtzee_score_options[category_to_score]] += points_to_score
+                    PlayerScoreCard.isScoredCard[category_to_score] = True
+                    print()
+
+                    return
+            else:
+                print(
+                    "Invalid input, only input a number 1-{}.".format(len(remaining_lower_scoring_boxes)))
+
+
+def TotalOfDice(diceCounts):
+    return (diceCounts[1]) + (diceCounts[2] * 2) + (diceCounts[3] * 3) + (diceCounts[4] * 4) + (
+            diceCounts[5] * 5) + (diceCounts[6] * 6)
+
 
 def PointCalculation(PlayerScoreCard, DiceState, CategoryToScore):
     counts = {1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0}
@@ -325,9 +437,6 @@ def PointCalculation(PlayerScoreCard, DiceState, CategoryToScore):
         counts[value] += 1
 
     # Used for a few of the scores
-    def TotalOfDice(diceCounts):
-        return (diceCounts[1]) + (diceCounts[2] * 2) + (diceCounts[3] * 3) + (diceCounts[4] * 4) + (
-                diceCounts[5] * 5) + (diceCounts[6] * 6)
 
     if CategoryToScore == 1:
         return counts[1]
@@ -390,21 +499,33 @@ def PointCalculation(PlayerScoreCard, DiceState, CategoryToScore):
         else:
             return 0
 
-
     if CategoryToScore == 12:
+        points = 0
         for totalDie in counts.values():
             if totalDie == 5:
                 PlayerScoreCard.Yahtzees += 1
-                return 50
+                points += 50
             else:
-                return 0
+                pass
+        return points
 
     if CategoryToScore == 13:
         return TotalOfDice(counts)
 
 
-def FinalScoreing(PlayerScoreCard, DiceState):
-    pass
+def FinalScoreing(PlayerScoreCard):
+    final_points = 0
+
+    for x in PlayerScoreCard.Card.values():
+        final_points += x
+
+    if PlayerScoreCard.Card["Yahtzee"] > 0:
+        final_points += (PlayerScoreCard.Yahtzees - 1) * 100
+
+    if PlayerScoreCard.CalculateUpperSectionPoints() >= 63:
+        final_points += 35
+
+    return final_points
 
 
 def DiceToRerollCheck(DiceList):
